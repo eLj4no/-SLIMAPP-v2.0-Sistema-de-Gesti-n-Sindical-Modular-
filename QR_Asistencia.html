@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <base target="_top">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+  <title>Control de Asistencia</title>
+  
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Round" rel="stylesheet">
+  
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: 'Inter', sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+    .container {
+      background: white;
+      border-radius: 24px;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+      max-width: 500px;
+      width: 100%;
+      overflow: hidden;
+    }
+    .header {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      padding: 30px 20px;
+      text-align: center;
+    }
+    .header h1 { font-size: 22px; font-weight: 800; margin-bottom: 5px; }
+    .header p { font-size: 13px; opacity: 0.9; }
+    .content { padding: 30px 20px; }
+    .loader {
+      text-align: center;
+      padding: 40px 20px;
+    }
+    .spinner {
+      border: 4px solid #f3f3f3;
+      border-top: 4px solid #667eea;
+      border-radius: 50%;
+      width: 50px;
+      height: 50px;
+      animation: spin 1s linear infinite;
+      margin: 0 auto 20px;
+    }
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+    .status-card {
+      background: #f8f9fa;
+      border-radius: 16px;
+      padding: 20px;
+      text-align: center;
+    }
+    .status-icon { font-size: 64px; margin-bottom: 15px; }
+    .status-title {
+      font-size: 18px;
+      font-weight: 700;
+      margin-bottom: 10px;
+      color: #1a1a1a;
+    }
+    .status-message {
+      font-size: 14px;
+      color: #666;
+      line-height: 1.6;
+    }
+    .info-box {
+      background: white;
+      border: 2px solid #e0e0e0;
+      border-radius: 12px;
+      padding: 15px;
+      margin-top: 20px;
+    }
+    .info-row {
+      display: flex;
+      justify-content: space-between;
+      padding: 8px 0;
+      border-bottom: 1px solid #f0f0f0;
+    }
+    .info-row:last-child { border-bottom: none; }
+    .info-label {
+      font-size: 11px;
+      color: #999;
+      font-weight: 600;
+      text-transform: uppercase;
+    }
+    .info-value {
+      font-size: 14px;
+      color: #1a1a1a;
+      font-weight: 700;
+      text-align: right;
+      max-width: 60%;
+      word-break: break-word;
+    }
+    .footer {
+      background: #f8f9fa;
+      padding: 20px;
+      text-align: center;
+      border-top: 1px solid #e0e0e0;
+    }
+    .footer p { font-size: 11px; color: #999; }
+    .success { color: #10b981; }
+    .error { color: #ef4444; }
+    .warning { color: #f59e0b; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <span class="material-icons-round" style="font-size: 60px;">event_available</span>
+      <h1>Control de Asistencia</h1>
+      <p>Sindicato SLIM n°3</p>
+    </div>
+    
+    <div class="content" id="content-area">
+      <div class="loader" id="loader">
+        <div class="spinner"></div>
+        <p style="color: #666; font-size: 14px;" id="loader-text">Verificando asistencia...</p>
+      </div>
+      <div id="result" style="display: none;"></div>
+    </div>
+    
+    <div class="footer">
+      <p>Sistema de Registro de Asistencia QR</p>
+    </div>
+  </div>
+
+  <script>
+    const STORAGE_KEY = 'qr_access_rut';
+    const params = <?!= JSON.stringify(params) ?>;
+    let timeoutId;
+    
+    window.onload = function() {
+      const rutUsuario = localStorage.getItem(STORAGE_KEY);
+      const nombreControl = params.control || params.asamblea || '';
+      
+      console.log('📱 RUT en localStorage:', rutUsuario);
+      console.log('📍 Control:', nombreControl);
+      
+      if (!rutUsuario) {
+        mostrarError(
+          'Dispositivo No Vinculado',
+          'Primero debes vincular tu dispositivo escaneando tu código QR personal. Acércate a la directiva del sindicato.'
+        );
+        return;
+      }
+      
+      if (!nombreControl) {
+        mostrarError(
+          'QR Inválido',
+          'Este código QR no contiene información válida de punto de control.'
+        );
+        return;
+      }
+      
+      registrarAsistencia(rutUsuario, nombreControl);
+    };
+    
+    function registrarAsistencia(rut, control) {
+      console.log('🚀 Registrando:', rut, control);
+      
+      timeoutId = setTimeout(function() {
+        document.getElementById('loader').style.display = 'none';
+        mostrarError('Tiempo Agotado', 'El servidor no respondió a tiempo.');
+      }, 30000);
+      
+      google.script.run
+        .withSuccessHandler(function(response) {
+          clearTimeout(timeoutId);
+          document.getElementById('loader').style.display = 'none';
+          
+          if (response.success) {
+            mostrarExito(response);
+          } else {
+            if (response.ventanaCerrada) {
+              mostrarVentanaCerrada(response);
+            } else if (response.yaRegistrado) {
+              mostrarAdvertencia(response.message);
+            } else {
+              mostrarError('Error', response.message);
+            }
+          }
+        })
+        .withFailureHandler(function(error) {
+          clearTimeout(timeoutId);
+          document.getElementById('loader').style.display = 'none';
+          mostrarError('Error de Conexión', 'No se pudo conectar con el servidor.');
+          console.error(error);
+        })
+        .registrarAsistencia(rut, control);
+    }
+
+    function mostrarVentanaCerrada(data) {
+      const resultDiv = document.getElementById('result');
+      const esAnticipado = data.tipoVentana === 'aun_no_abre';
+      const icono = esAnticipado ? 'schedule' : 'lock_clock';
+      const titulo = esAnticipado ? 'Registro no disponible aún' : 'Registro cerrado';
+      const colorIcono = esAnticipado ? '#f59e0b' : '#ef4444';
+      const colorBorde = esAnticipado ? '#fde68a' : '#fecaca';
+      const colorFondo = esAnticipado ? '#fffbeb' : '#fef2f2';
+      const colorTitulo = esAnticipado ? '#92400e' : '#991b1b';
+      const colorMsg = esAnticipado ? '#78350f' : '#7f1d1d';
+
+      resultDiv.innerHTML =
+        '<div class="status-card" style="border: 2px solid ' + colorBorde + '; background: ' + colorFondo + ';">' +
+          '<div class="status-icon" style="color: ' + colorIcono + ';">' +
+            '<span class="material-icons-round" style="font-size: 64px;">' + icono + '</span>' +
+          '</div>' +
+          '<div class="status-title" style="color: ' + colorTitulo + ';">' + titulo + '</div>' +
+          '<div class="status-message" style="color: ' + colorMsg + ';">' + data.message + '</div>' +
+          '<div class="info-box" style="margin-top: 16px;">' +
+            '<div class="info-row">' +
+              '<span class="info-label">Apertura</span>' +
+              '<span class="info-value">' + data.horaApertura + ' hrs.</span>' +
+            '</div>' +
+            '<div class="info-row">' +
+              '<span class="info-label">Cierre</span>' +
+              '<span class="info-value">' + data.horaCierre + ' hrs.</span>' +
+            '</div>' +
+          '</div>' +
+        '</div>';
+      resultDiv.style.display = 'block';
+    }
+    
+    function mostrarExito(data) {
+        const resultDiv = document.getElementById('result');
+        
+        // Mensaje adicional sobre el correo
+        let mensajeCorreo = '';
+        if (data.mensajeCorreo) {
+            const iconoCorreo = data.correoEnviado ? 'mail' : 'mail_outline';
+            const colorCorreo = data.correoEnviado ? 'text-green-600' : 'text-amber-600';
+            
+            mensajeCorreo = `
+                <div class="mt-4 p-3 bg-slate-50 rounded-lg border border-slate-200">
+                    <div class="flex items-start gap-2">
+                        <span class="material-icons-round ${colorCorreo} text-lg">${iconoCorreo}</span>
+                        <p class="text-xs text-slate-700">${data.mensajeCorreo}</p>
+                    </div>
+                </div>
+            `;
+        }
+        
+        resultDiv.innerHTML = `
+            <div class="status-card">
+                <div class="status-icon success">
+                    <span class="material-icons-round" style="font-size: 64px;">check_circle</span>
+                </div>
+                <div class="status-title">¡Asistencia Registrada!</div>
+                <div class="status-message">Tu asistencia ha sido registrada exitosamente.</div>
+                
+                <div class="info-box">
+                    <div class="info-row">
+                        <span class="info-label">Nombre</span>
+                        <span class="info-value">${data.nombre}</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">RUT</span>
+                        <span class="info-value">${formatRut(data.rut)}</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">Actividad</span>
+                        <span class="info-value">${data.asamblea}</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">Fecha/Hora</span>
+                        <span class="info-value">${data.fecha}</span>
+                    </div>
+                </div>
+                
+                ${mensajeCorreo}
+            </div>
+        `;
+        resultDiv.style.display = 'block';
+    }
+    
+    function mostrarError(titulo, mensaje) {
+      const resultDiv = document.getElementById('result');
+      resultDiv.innerHTML = `
+        <div class="status-card">
+          <div class="status-icon error">
+            <span class="material-icons-round" style="font-size: 64px;">error</span>
+          </div>
+          <div class="status-title">${titulo}</div>
+          <div class="status-message">${mensaje}</div>
+        </div>
+      `;
+      resultDiv.style.display = 'block';
+    }
+    
+    function mostrarAdvertencia(mensaje) {
+      const resultDiv = document.getElementById('result');
+      const esOtroDispositivo = mensaje && mensaje.toLowerCase().indexOf('otro dispositivo') !== -1;
+
+      if (esOtroDispositivo) {
+        // Caso: ya registró en este evento desde otro celular
+        resultDiv.innerHTML = `
+          <div class="status-card" style="background: #fff8e1; border: 2px solid #ffe082;">
+            <div class="status-icon" style="color: #f59e0b; margin-bottom: 12px;">
+              <span class="material-icons-round" style="font-size: 72px;">devices</span>
+            </div>
+            <div class="status-title" style="color: #92400e; font-size: 20px;">
+              Ya participaste en este evento
+            </div>
+            <div class="status-message" style="color: #78350f; font-size: 14px; margin-top: 8px; line-height: 1.7;">
+              Tu asistencia a <strong>este evento</strong> ya fue registrada anteriormente desde otro dispositivo.
+            </div>
+            <div style="background: white; border: 1px solid #fde68a; border-radius: 12px; padding: 14px; margin-top: 18px; text-align: left;">
+              <div style="display: flex; align-items: flex-start; gap: 10px;">
+                <span class="material-icons-round" style="color: #f59e0b; font-size: 20px; flex-shrink: 0; margin-top: 2px;">info</span>
+                <div>
+                  <p style="font-size: 12px; font-weight: 700; color: #92400e; margin-bottom: 4px;">¿Esto es un error?</p>
+                  <p style="font-size: 12px; color: #78350f; line-height: 1.6;">
+                    Si no reconoces este registro, comunícate con un dirigente del sindicato para que revise tu historial de asistencia.
+                  </p>
+                </div>
+              </div>
+            </div>
+            <div style="background: #fef3c7; border-radius: 10px; padding: 10px 14px; margin-top: 12px;">
+              <p style="font-size: 12px; color: #92400e; font-weight: 600;">
+                ✅ Tu participación en este evento está confirmada. No es necesario ninguna acción adicional.
+              </p>
+            </div>
+          </div>
+        `;
+      } else {
+        // Caso: ya registró en esta asamblea específica
+        resultDiv.innerHTML = `
+          <div class="status-card" style="background: #f0fdf4; border: 2px solid #86efac;">
+            <div class="status-icon" style="color: #16a34a; margin-bottom: 12px;">
+              <span class="material-icons-round" style="font-size: 72px;">how_to_reg</span>
+            </div>
+            <div class="status-title" style="color: #14532d; font-size: 20px;">
+              ¡Tu asistencia ya está registrada!
+            </div>
+            <div class="status-message" style="color: #166534; font-size: 14px; margin-top: 8px; line-height: 1.7;">
+              Ya marcaste tu asistencia en este punto de control anteriormente.
+            </div>
+            <div style="background: white; border: 1px solid #bbf7d0; border-radius: 12px; padding: 14px; margin-top: 18px; text-align: left;">
+              <div style="display: flex; align-items: flex-start; gap: 10px;">
+                <span class="material-icons-round" style="color: #16a34a; font-size: 20px; flex-shrink: 0; margin-top: 2px;">check_circle</span>
+                <div>
+                  <p style="font-size: 12px; font-weight: 700; color: #14532d; margin-bottom: 4px;">No se requiere ninguna acción</p>
+                  <p style="font-size: 12px; color: #166534; line-height: 1.6;">
+                    Tu registro ya existe en el sistema. Puedes consultar tu historial completo de asistencia en la aplicación del sindicato, en la sección <strong>Registro Asistencia</strong>.
+                  </p>
+                </div>
+              </div>
+            </div>
+            <div style="background: #dcfce7; border-radius: 10px; padding: 10px 14px; margin-top: 12px;">
+              <p style="font-size: 12px; color: #14532d; font-weight: 600;">
+                ✅ Asistencia confirmada. Puedes cerrar esta ventana.
+              </p>
+            </div>
+          </div>
+        `;
+      }
+      resultDiv.style.display = 'block';
+    }
+    
+    function formatRut(rut) {
+      if (!rut) return '';
+      const cleaned = rut.replace(/\./g, '').replace(/-/g, '');
+      const dv = cleaned.slice(-1);
+      const numero = cleaned.slice(0, -1);
+      return numero.replace(/\B(?=(\d{3})+(?!\d))/g, '.') + '-' + dv;
+    }
+  </script>
+</body>
+</html>
