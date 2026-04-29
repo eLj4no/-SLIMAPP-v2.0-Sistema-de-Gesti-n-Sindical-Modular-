@@ -314,8 +314,8 @@ function guardarDatosVestuario(rutInput, datosVestuario) {
       var rutLimpioInput = cleanRut(rutInput);
       var COL = CONFIG.COLUMNAS.USUARIOS;
 
-      var tallasValidas  = ['XS','S','M','L','XL','XXL','XXXL'];
-      var numerosValidos = ['32','34','36','38','40','42','44','46','48','50','52','54','56','58','60','62','64','66'];
+      var tallasValidas  = ['XS','S','M','L','XL','XXL','3XL','4XL','5XL'];
+      var numerosValidos = ['32','34','36','38','40','42','44','46','48','50','52','54','56','58','60','62','64','66','67'];
 
       if (datosVestuario.tallaPolera && !tallasValidas.includes(datosVestuario.tallaPolera)) {
         return { success: false, message: "Talla Polera/Camisa inválida." };
@@ -326,7 +326,7 @@ function guardarDatosVestuario(rutInput, datosVestuario) {
       if (datosVestuario.tallaPantalon && !numerosValidos.includes(String(datosVestuario.tallaPantalon))) {
         return { success: false, message: "Talla Pantalón inválida." };
       }
-      if (datosVestuario.tallaCalzado && !['32','33','34','35','36','37','38','39','40','41','42','43','44','45','46','47','48'].includes(String(datosVestuario.tallaCalzado))) {
+      if (datosVestuario.tallaCalzado && !['32','33','34','35','36','37','38','39','40','41','42','43','44','45','46','47','48','50','52'].includes(String(datosVestuario.tallaCalzado))) {
         return { success: false, message: "Talla Calzado inválida." };
       }
 
