@@ -4454,10 +4454,10 @@
           return;
         }
 
-        ['login-view','dashboard-view','logout-view','profile-view','loans-view','justifications-view','appeals-view','attendance-records-view','permission-view','admin-panel-view','management-view','id-credential-view','calculator-view','contrato-colectivo-view','slim-quest-view','slim-quest-quiz-view','slim-quest-leaderboard-view','admin-asistencia-qr-view','dirigentes-view','denuncias-view','denuncia-jefatura-view'].forEach(id => document.getElementById(id).classList.add('hidden'));
+        ['login-view','dashboard-view','logout-view','profile-view','loans-view','justifications-view','appeals-view','attendance-records-view','permission-view','admin-panel-view','management-view','id-credential-view','calculator-view','contrato-colectivo-view','slim-quest-view','slim-quest-quiz-view','slim-quest-leaderboard-view','admin-asistencia-qr-view','dirigentes-view','denuncias-view','denuncia-jefatura-view'].forEach(id => { var el = document.getElementById(id); if(el) el.classList.add('hidden'); });
         const view = document.getElementById(viewId);
         view.classList.remove('hidden');
-        if (['dashboard-view','profile-view','loans-view','justifications-view','appeals-view','attendance-records-view','permission-view','admin-panel-view','management-view','id-credential-view','calculator-view','contrato-colectivo-view','slim-quest-view','slim-quest-quiz-view','slim-quest-leaderboard-view','admin-asistencia-qr-view','dirigentes-view','denuncias-view','denuncia-jefatura-view'].includes(viewId)) view.classList.add('flex');
+        if (['dashboard-view','profile-view','loans-view','justifications-view','appeals-view','attendance-records-view','permission-view','admin-panel-view','management-view','id-credential-view','calculator-view','contrato-colectivo-view','slim-quest-view','slim-quest-quiz-view','slim-quest-leaderboard-view','admin-asistencia-qr-view','dirigentes-view','denuncias-view','denuncia-jefatura-view'].includes(viewId)) { var vEl = document.getElementById(viewId); if(vEl) vEl.classList.add('flex'); 
       }
 
       function handleLogout() {
@@ -4648,6 +4648,10 @@
           }
         } else if (module === 'Dirigentes') {
           switchView('dirigentes-view');
+        } else if (module === 'DenunciasInternas') {
+          switchView('denuncias-view');
+        } else if (module === 'DenunciaJefatura') {
+          document.getElementById('modal-advertencia-denuncia').classList.remove('hidden');
         } else if (module === 'DenunciasInternas') {
           switchView('denuncias-view');
 
