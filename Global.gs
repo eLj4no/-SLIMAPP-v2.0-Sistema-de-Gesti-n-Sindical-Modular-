@@ -45,7 +45,8 @@ var CONFIG = {
     PERMISOS_MEDICOS:"1VYfm7cOgL3mVfVoI8DubIm8WG2srzQw9a6DtIEs3UMM",
     CREDENCIALES:   "1HVyPxdYKuvIybeOCAPwAJaVHwlxEuOik4YW0XOXBE5o",
     ASISTENCIA:     "1SRQ8Mlc6bBdb0mitAfn4I-EUAS4BOrZRbqS9YAmg3Sk",
-    GAMIFICACION:   "1SHDIhGv6XOc30Epm4vdusp3QGVD-pWzhIwzeD6iqbXQ"
+    GAMIFICACION:   "1SHDIhGv6XOc30Epm4vdusp3QGVD-pWzhIwzeD6iqbXQ",
+    DENUNCIAS:      "1R6D9dRClzl5edb1bK8upGve8qFlRrzMU8TN_SuOtZT0"
   },
   HOJAS: {
     USUARIOS:               "BD_SLIMAPP",
@@ -60,7 +61,8 @@ var CONFIG = {
     ASISTENCIA:             "BD_ASISTENCIA",
     PUNTOS_CONTROL:         "PUNTOS_CONTROL",
     GAMIFICACION:           "BD_GAMIFICACION",
-    BANCO_PREGUNTAS:        "BANCO_PREGUNTAS"
+    BANCO_PREGUNTAS:        "BANCO_PREGUNTAS",
+    DENUNCIAS_JEFATURAS:    "DEN-JEFATURAS"
   },
   CARPETAS: {
     JUSTIFICACIONES:             "1UD9hQz1FuacSb3QYrahRl7IfvlpKn8v6",
@@ -68,7 +70,8 @@ var CONFIG = {
     APELACIONES_LIQUIDACIONES:   "1dR7fM6TW99tunNaMZliyvXc-L23nHKVY",
     APELACIONES_DEVOLUCIONES:    "1LGLKA3fiCJXf2ouIqlxq3jk_ZSxI3IyM",
     PERMISOS_MEDICOS:            "1nCYxD5sJLszBBA6s2DquGW8vlKGZp4ty",
-    VESTUARIO_DOCS:              "1A4PVsIn8ndNMXdqnO9GZCovjtNdfr0BI"
+    VESTUARIO_DOCS:              "1A4PVsIn8ndNMXdqnO9GZCovjtNdfr0BI",
+    DENUNCIAS_JEFATURAS:         "1peT5kMhzTjsxBE0iauojdBMDN4mYJYcy"
   },
   CORREOS: {
     REPRESENTANTE_LEGAL: "juancarlos.pacheco@cl.issworld.com"
@@ -116,6 +119,20 @@ var CONFIG = {
       ID: 0, CATEGORIA: 1, NIVEL: 2, PREGUNTA: 3, OPCION_A: 4, OPCION_B: 5,
       OPCION_C: 6, OPCION_D: 7, RESPUESTA: 8, EXPLICACION: 9, XP: 10,
       ACTIVA: 11, FUENTE: 12
+    },
+    DENUNCIAS_JEFATURAS: {
+      ID_DENUNCIA:       0,   // A — Código identificador único (ej: DJ-XXXX)
+      FECHA_REGISTRO:    1,   // B — Marca temporal DD/MM/YYYY HH:MM:SS
+      RUT_DENUNCIANTE:   2,   // C — RUT del socio (automático)
+      NOMBRE_DENUNCIANTE:3,   // D — Nombre del socio (automático)
+      CATEGORIA:         4,   // E — Categoría de la denuncia
+      SUBCATEGORIA:      5,   // F — Subcategoría según categoría
+      TIPO_DE_CARGO:     6,   // G — Tipo de cargo del denunciado
+      NOMBRE_DENUNCIADO: 7,   // H — Nombre y apellido del denunciado
+      LUGAR_TRABAJO:     8,   // I — Nombre del lugar de trabajo
+      DESCRIPCION_HECHOS:9,   // J — Relato libre (máx 500 chars)
+      URL_ARCHIVO_ADJUNTO:10, // K — URL del archivo en Drive
+      ESTADO_SOCIO:      11   // L — Estado de notificación por correo
     }
   }
 };
